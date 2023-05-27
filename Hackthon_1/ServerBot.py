@@ -1,4 +1,4 @@
-import json
+
 import logging
 from telegram import Update, constants
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
