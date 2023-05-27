@@ -11,7 +11,7 @@ logging.basicConfig(
 
 
 
-# fake api key for public sharing
+# fake api key for public sharing - please replace with your own
 openai.api_key = "wh-SB03IT99DWWWbCCC5C13TBlbkFJMcoPGHG9HxoOupAuUwkkstw"
 
 examples = {

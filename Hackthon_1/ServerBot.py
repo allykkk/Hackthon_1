@@ -1,4 +1,3 @@
-
 import logging
 from telegram import Update, constants
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
@@ -16,7 +15,7 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # logging.info(f"message from {update.effective_chat.id}")
     msg_text = "🤖 Welcome to the Reminder Bot\! 📅 \n\nI'm here to help you stay organized and never miss important dates or events\. Whether it's birthdays, anniversaries, or other special occasions, I'll make sure you're well\-prepared\."
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg_text,parse_mode=MarkdownV2)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg_text,parse_mode="MarkdownV2")
 
 
 async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -75,7 +74,7 @@ async def reminder(context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    # use fake Telegram bot token for public sharing.
+    # use fake Telegram bot token for public sharing - please replace it with your own token
     application = ApplicationBuilder().token('6666666666:AABBCCDDEEFG_ABCD-68687987-11').build()
     # run the callback function daily at 9AM
     application.job_queue.run_daily(reminder, get_scheduled_time())
