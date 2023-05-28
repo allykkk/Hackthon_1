@@ -4,7 +4,7 @@ from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHan
 # AI is only in charge of getting output from chatgpt
 from AI import parse_user_input
 from DateHandling import get_date, get_scheduled_time, daynum_to_string
-from Database import insert_data, scan_database
+from Database import insert_data, scan_database, get_user_datas
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -15,7 +15,22 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # logging.info(f"message from {update.effective_chat.id}")
     msg_text = "🤖 Welcome to the Reminder Bot\! 📅 \n\nI'm here to help you stay organized and never miss important dates or events\. Whether it's birthdays, anniversaries, or other special occasions, I'll make sure you're well\-prepared\."
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg_text,parse_mode="MarkdownV2")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg_text, parse_mode="MarkdownV2")
+
+
+async def all_events(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_events_list = get_user_datas(update.effective_chat.id)
+    msg_text = ""
+    for event in user_events_list:
+        msg_text += f"✅ SUBJECT:  {event['subject']}\n  \t\t\t\tEVENT:  {event['event']}\n  \t\t\t\tDATE:   {event['date']}\n  \t\t\t\tTYPE:  {event['enumerated']}\n"
+        if event['more_info']: msg_text += f"\t\t\t\t\t\tPS: {event['more_info']}\n\n"
+        else: msg_text += "\n"
+
+    msg_text = msg_text.replace("-", "\-")
+    msg_text = msg_text.replace("_", "\_")
+    msg_text = msg_text.replace("*", "\*")
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=msg_text, parse_mode="MarkdownV2")
 
 
 async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -41,9 +56,7 @@ async def chatgpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def reminder(context: ContextTypes.DEFAULT_TYPE):
     logging.info(f"Calling event...")
-    msg_text = "Testing"
-
-    fetched_events: dict = scan_database([1, 2])
+    fetched_events: dict = scan_database([0, 3])
     for day in fetched_events.keys():
         for event in fetched_events[day]:
             event_name = event["event"]
@@ -55,22 +68,22 @@ async def reminder(context: ContextTypes.DEFAULT_TYPE):
             if enumerated == "BIRTHDAY":
                 msg_text += f"{subject}'s \*birthday\* is coming\! 🥳🥳🥳\n\n"
                 msg_text += f"Don't forget to wish them a _Happy \n\nBirthday_ {daynum_to_string(day).lower()} ❤"
+                if (more_info): msg_text += f"*More Info*: {more_info}\n\n"
             elif enumerated == "ANNIVERSARY":
                 msg_text += f"_{subject}'s \*anniversary\* is coming\! ❤❤❤_\n\n"
                 msg_text += f"_💌 Don't forget to prepare something \n\nspecial {daynum_to_string(day).lower()} 💌_\n\n"
-                msg_text += f"*Event*: {event}\n\n"
+                msg_text += f"*Event*: {event_name}\n\n"
                 if (more_info): msg_text += f"*More Info*: {more_info}\n\n"
             elif enumerated == "MONTHLY_REMINDER":
                 msg_text += f"_This is your monthly reminder for \.\.\. _\n\n"
                 msg_text += f"*Subject*: {subject}\n\n"
-                msg_text += f"*Event*: {event}\n\n"
+                msg_text += f"*Event*: {event_name}\n\n"
                 if (more_info): msg_text += f"*More Info*: {more_info}\n\n"
             else:
                 msg_text += f"*Subject*: {subject}\n\n"
-                msg_text += f"*Event*: {event}\n\n"
+                msg_text += f"*Event*: {event_name}\n\n"
                 if (more_info): msg_text += f"*More Info*: {more_info}\n\n"
             await context.bot.send_message(chat_id=chat_id, text=msg_text, parse_mode="MarkdownV2")
-
 
 
 if __name__ == '__main__':
@@ -79,7 +92,9 @@ if __name__ == '__main__':
     # run the callback function daily at 9AM
     application.job_queue.run_daily(reminder, get_scheduled_time())
     start_handler = CommandHandler('start', start)
+    all_events_handler = CommandHandler('all', all_events)
     chat_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), chatgpt)
     application.add_handler(start_handler)
+    application.add_handler(all_events_handler)
     application.add_handler(chat_handler)
     application.run_polling()

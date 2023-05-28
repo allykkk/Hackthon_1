@@ -12,7 +12,7 @@ logging.basicConfig(
 def get_ready_db_connection():
     conn = sqlite3.connect('reminder.db')
     cursor = conn.cursor()
-
+    # date is text in db instead of date because sqlite required year as well - which does not apply to the project
     create_table_query = '''
             CREATE TABLE IF NOT EXISTS events(
                 id INTEGER PRIMARY KEY,
@@ -73,10 +73,8 @@ def get_column_names(cursor):
         return []
 
 
-
-
 # Function to perform the scanning operation
-def scan_database(remind_days: list):
+def scan_database(remind_days: list):  # make sure list[0] is today
     # Connect to the database
     conn = safe_db_connection()
     cursor = conn.cursor()
@@ -95,16 +93,61 @@ def scan_database(remind_days: list):
         # Fetch the results
         rows_list = []
         for row in rows:
-            # each row's data stored as dict.
             row_dict = {}
             for i, names in enumerate(column_names):
                 row_dict[names] = row[i]
-            # if one date has multiple rows result, put them in a list
             rows_list.append(row_dict)
-        # final format is a dict with day as key and value is list contains row/rows in a format of dictionary
+
+            # If today is the day for this event, let's either remove it or update it to the next month
+            if day == 0:
+                check_onetime_event(row_dict, conn)
+                check_monthly_event(row_dict, conn)
         returned_data[day] = rows_list
+    # print(returned_data)
     conn.close()
     return returned_data
 
 
+# row data is a tuple, eg: (3, 6139861153, 'Shufersal', 'Phone Call', '05-28', 'OTHER', 'Follow up')
+# row_dict is dict, eg; {'id': 3, 'chat_id': 6139861153, 'subject': 'Shufersal', 'event': 'Phone Call', 'date': '05-28', 'enumerated': 'OTHER', 'more_info': 'Follow up'}
+def check_onetime_event(row_dict: dict, conn):
+    if row_dict['enumerated'] in ['OTHER', "EVENT"]:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM events WHERE id=?", (row_dict['id'],))
+        conn.commit()
+        logging.info("Deleted one time event. ")
 
+
+# QUESTION: we have activated a few cursor in the functions ? can you have a few cursors together ???
+def check_monthly_event(row_dict: dict, conn):
+    if row_dict['enumerated'] == 'MONTHLY_REMINDER':
+        old_date = row_dict['date']
+        # make the old date a datetime object
+        date_object = datetime.datetime.strptime(old_date, "%m-%d").date().replace(year=datetime.datetime.now().year)
+        new_date = date_object.replace(month=date_object.month + 1)
+        new_date_string = new_date.strftime("%m-%d")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE events SET date=? WHERE id=?", (new_date_string, row_dict['id'],))
+        conn.commit()
+        logging.info("Updated the next date for current monthly event.")
+
+
+# scan_database([0,3])
+
+
+def get_user_datas(chat_id):
+    conn = safe_db_connection()
+    cursor = conn.cursor()
+    column_names = get_column_names(cursor)
+    cursor.execute("SELECT * from events where chat_id=?", (chat_id,))
+    rows = cursor.fetchall()
+    rows_list = []
+    for row in rows:
+        row_dict = {}
+        for i, names in enumerate(column_names):
+            row_dict[names] = row[i]
+        rows_list.append(row_dict)
+    return rows_list
+
+# testing
+# print(get_user_datas())
