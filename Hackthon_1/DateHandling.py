@@ -1,6 +1,7 @@
 import datetime
 from dateutil import tz
 
+
 # 09-87
 def get_date(unformatted_date):
     if "+" in unformatted_date:
@@ -33,13 +34,12 @@ def valid_date(formatted_date):
 
 # set sacanning process at 9AM.
 def get_scheduled_time():
-    return datetime.time(20, 45, tzinfo=tz.gettz('Asia/Jerusalem'))
+    return datetime.time(9, 00, tzinfo = tz.gettz('Asia/Jerusalem'))
 
-
-def daynum_to_string(daynum):
-    if daynum == 0:
-        return "Today"
-    elif daynum == 1:
-        return "Tomorrow"
-    else:
-        return f"{daynum} Days from now"
+    def daynum_to_string(daynum):
+        if daynum == 0:
+            return "Today"
+        elif daynum == 1:
+            return "Tomorrow"
+        else:
+            return f"{daynum} Days from now"
