@@ -10,3 +10,6 @@ The Reminder Bot is a Telegram bot that helps users stay organized by allowing t
 
 - **Scheduled Scans:** The bot automatically scans the database at a scheduled time, typically 9 AM IL time ( can be adjust for local use) , to identify upcoming events. It sends reminders to users three days in advance as well as on the event day.
 
+## MindMap
+
+![image](https://github.com/allykkk/Hackthon_1/assets/131651127/3d2d4cd2-f351-4a85-83d6-d227beb602a3)
