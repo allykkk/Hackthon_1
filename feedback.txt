@@ -1,0 +1,6 @@
+Ally
+Impressive project! I admire your utilization of Chat-GPT as your API—it's fantastic. Excellent work with the datetime module and the structure of your code. You've adeptly used all the tools we've covered in the first four weeks of the course. My suggestion would be to incorporate more Python OOP; it would make your code more organized and easier to follow. Apart from this minor point, your project is outstanding. Remember to include a README and a requirements.txt file.
+Python OOP: 8/10
+Databases: 10/10
+API/Jason: 10/10
+General score: 9
